@@ -257,10 +257,6 @@ class DeepProxy {
     return typeof symbol === "symbol";
   }
 
-  static #isArray(array) {
-    return Array.isArray(array);
-  }
-
   static formatPath(path) {
     if(!(DeepProxy.#isObject(path) || typeof path === "string")) return null;
     if(DeepProxy.#isObject(path)) {
