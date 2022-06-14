@@ -44,7 +44,7 @@ deepProxy
 
 ### Remove Events
 
-Ypu can remove events using the .remove() function
+You can remove events using the .remove() function
 ```javascript
 deepProxy.remove(DeepProxy.Events.SET);
 ```
@@ -77,7 +77,7 @@ let object = deepProxy.proxy;
 **Settings:**
 | Setting                   | Default                   | Description                                      |
 | :------------------------ |:---------------------- | :-----------------------------                   |
-| `as_handler`              | `false` | Uses the settings object as the proxy's handler. <br/>If true none of the other settings will work.  |
+| `as_handler`              | `false` | Uses the settings object as the proxy's [handler](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy). <br/>If true none of the other settings will work.  |
 | `default_action`          | `true`  | Does the default action automatically when a event is called. <br/>The object will work as normal without you doing anything. <br/>If set to `false` `contain_function_events` will automatically be deactivated |
 | `contain_function_events` | `false` | Doesent call events thats fiered during a function call. <br/>You can access all the canceled events in `Event.events` in the `FUNCTION_CALL` events |
 | `path_as_array`           | `false` | Automaticly formats the path at in events to be <br/>an `array` insted of a `string`.  |
@@ -93,7 +93,7 @@ let object = deepProxy.proxy;
 
 | Parameter | Type                | Description                                                                |
 | :-------- | :------------------ | :------------------------------------------------------------------------- |
-| `event`   | `DeepProxt.Event.*` | The event you vant to remove. <br />Use the static enum `DeepProxy.Events` |
+| `event`   | `DeepProxt.Event.*` | The event you want to remove. <br />Use the static enum `DeepProxy.Events` |
 
 ### `.proxy`
 
