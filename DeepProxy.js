@@ -89,7 +89,7 @@ class DeepProxy {
         let path = this.#trace(info.parent, info.parentKey)
         if(this.#settings.path_as_array) path = DeepProxy.formatPath(path);
         
-        let eventData = {target, args, proxy, targetPath: path.target, valuePath: path.value};
+        let eventData = {target, args, name: info.parentKey, proxy, targetPath: path.target, valuePath: path.value};
         let res = this.#call(DeepProxy.Events.CONSTRUCTOR_CALL, eventData);
         
         return this.#settings.default_action || res === DeepProxy.Events.CANCELED? new target(...args) : res;
@@ -274,3 +274,5 @@ class DeepProxy {
     return this.#proxy;
   }
 }
+
+window.DeepProxy = DeepProxy;
