@@ -58,25 +58,27 @@ class DeepProxy {
     let map = {};
     let info = {parrent, parentKey, proxy: new Proxy(source, {
       // custom
-      apply: (target, parrentProxy, args) => {
-        if(this.#handler && DeepProxy.#isFunction(this.#handler.apply)) return this.#handler.apply(target, parrentProxy, args);
+      apply: (target, thisArg, args) => {
+        if(this.#handler && DeepProxy.#isFunction(this.#handler.apply)) return this.#handler.apply(target, thisArg, args);
         
-        let f_res, res;
+        let f_res, res, events = [];
 
         if(this.#settings.default_action) {
-          if(this.#settings.contain_function_events) this.#saveEvents = true;
-          f_res = target(...args);
-          this.#saveEvents = false;
+          if(this.#settings.contain_function_events) this.#events.push([]);
+          f_res = target.bind(thisArg)(...args);
+          if(this.#settings.contain_function_events) events = this.#events.pop();
         }
         
         let path = this.#trace(info.parent, info.parentKey)
         if(this.#settings.path_as_array) path = DeepProxy.formatPath(path);
         
-        let eventData = {events: [...this.#events], target, name: info.parentKey, args, parrentProxy, parentPath: path.target, targetPath: path.value};
-        res = this.#call(DeepProxy.Events.FUNCTION_CALL, eventData);
+        let eventData = {events, target, name: info.parentKey, args, thisArg, parentPath: path.target, targetPath: path.value};
+        if(this.#events.length === 0)
+          res = this.#call(DeepProxy.Events.FUNCTION_CALL, eventData);
+        else
+          this.#events[this.#events.length - 1].push({ event: DeepProxy.Events.FUNCTION_CALL, data: eventData })
         
-        this.#events = [];
-        return this.#settings.default_action? f_res : (res === DeepProxy.Events.CANCELED? target(...args) : res);
+        return this.#settings.default_action? f_res : (res === DeepProxy.Events.CANCELED? target.bind(thisArg)(...args) : res);
       },
       construct: (target, args, proxy) => {
         if(this.#handler && DeepProxy.#isFunction(this.#handler.construct)) return this.#handler.construct(target, args, proxy);
@@ -85,7 +87,11 @@ class DeepProxy {
         if(this.#settings.path_as_array) path = DeepProxy.formatPath(path);
         
         let eventData = {target, args, name: info.parentKey, proxy, targetPath: path.target, valuePath: path.value};
-        let res = this.#call(DeepProxy.Events.CONSTRUCTOR_CALL, eventData);
+        let res;
+        if(this.#events.length === 0)
+          res = this.#call(DeepProxy.Events.CONSTRUCTOR_CALL, eventData);
+        else
+          this.#events[this.#events.length - 1].push({ event: DeepProxy.Events.CONSTRUCTOR_CALL, data: eventData })
         
         return this.#settings.default_action || res === DeepProxy.Events.CANCELED? new target(...args) : res;
       },
@@ -96,7 +102,11 @@ class DeepProxy {
         if(this.#settings.path_as_array) path = DeepProxy.formatPath(path);
 
         let eventData = {target, key, value, proxy, targetPath: path.target, valuePath: path.value};
-        let res = this.#call(DeepProxy.Events.SET, eventData);
+        let res;
+        if(this.#events.length === 0)
+          res = this.#call(DeepProxy.Events.SET, eventData);
+        else
+          this.#events[this.#events.length - 1].push({ event: DeepProxy.Events.SET, data: eventData })
         
         if(this.#settings.default_action || res === DeepProxy.Events.CANCELED) {
           target[key] = DeepProxy.#isObject(value) || DeepProxy.#isFunction(value)? this.#create(value, info, key) : value;
@@ -118,7 +128,11 @@ class DeepProxy {
         if(this.#settings.path_as_array) path = DeepProxy.formatPath(path);
 
         let eventData = {target, key, proxy, targetPath: path.target, valuePath: path.value};
-        let res = this.#call(DeepProxy.Events.GET, eventData);
+        let res;
+        if(this.#events.length === 0)
+          res = this.#call(DeepProxy.Events.GET, eventData);
+        else
+          this.#events[this.#events.length - 1].push({ event: DeepProxy.Events.GET, data: eventData })
         
         return this.#settings.default_action || res === DeepProxy.Events.CANCELED? target[key] : res;
       },
@@ -129,7 +143,11 @@ class DeepProxy {
         if(this.#settings.path_as_array) path = DeepProxy.formatPath(path);
         
         let eventData = {target, key};
-        let res = this.#call(DeepProxy.Events.SET, eventData);
+        let res;
+        if(this.#events.length === 0)
+          res = this.#call(DeepProxy.Events.DELETE, eventData);
+        else
+          this.#events[this.#events.length - 1].push({ event: DeepProxy.Events.DELETE, data: eventData })
         
         if(this.#settings.default_action || res === DeepProxy.Events.CANCELED) {
           if(!(key in target)) return false;
