@@ -59,9 +59,6 @@ class DeepProxy {
     let info = {parrent, parentKey, proxy: new Proxy(source, {
       // custom
       apply: (target, parrentProxy, args) => {
-        console.log("apply arguments:", target, parrentProxy, args)
-        console.log("info", info)
-        
         if(this.#handler && DeepProxy.#isFunction(this.#handler.apply)) return this.#handler.apply(target, parrentProxy, args);
         
         let f_res, res;
@@ -82,8 +79,6 @@ class DeepProxy {
         return this.#settings.default_action? f_res : (res === DeepProxy.Events.CANCELED? target(...args) : res);
       },
       construct: (target, args, proxy) => {
-        console.log("construct arguments:", target, args, proxy)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.construct)) return this.#handler.construct(target, args, proxy);
 
         let path = this.#trace(info.parent, info.parentKey)
@@ -95,8 +90,6 @@ class DeepProxy {
         return this.#settings.default_action || res === DeepProxy.Events.CANCELED? new target(...args) : res;
       },
       set: (target, key, value, proxy) => {
-        console.log("set arguments:", target, key, value, proxy)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.set)) return this.#handler.set(target, key, value, proxy);
 
         let path = this.#trace(info, key)
@@ -113,8 +106,6 @@ class DeepProxy {
         return res;
       },
       get: (target, key, proxy) => {
-        console.log("get arguments:", target, key, proxy)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.get)) return this.#handler.get(target, key, proxy);
         
         if(!map[key] && target[key]) {
@@ -132,8 +123,6 @@ class DeepProxy {
         return this.#settings.default_action || res === DeepProxy.Events.CANCELED? target[key] : res;
       },
       deleteProperty: (target, key) => {
-        console.log("deleteProperty arguments:", target, key)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.deleteProperty)) return this.#handler.deleteProperty(target, key);
 
         let path = this.#trace(info, key);
@@ -155,50 +144,34 @@ class DeepProxy {
 
       // default
       defineProperty: (target, key, descriptor) => {
-        console.log("defineProperty arguments:", target, key, descriptor)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.defineProperty)) return this.#handler.defineProperty(target, key, descriptor);
         return Reflect.defineProperty(target, key, descriptor);
       },
       getOwnPropertyDescriptor: (target, key) => {
-        console.log("getOwnPropertyDescriptor arguments:", target, key)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.getOwnPropertyDescriptor)) return this.#handler.getOwnPropertyDescriptor(target, key);
         return Reflect.getOwnPropertyDescriptor(target, key)
       },
       getPrototypeOf: (target) => {
-        console.log("getPrototypeOf arguments:", target)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.getPrototypeOf)) return this.#handler.getPrototypeOf(target);
         return Reflect.getPrototypeOf(target);
       },
       has: (target, key) => {
-        console.log("has arguments:", target, key)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.has)) return this.#handler.has(target, key);
         return key in target;
       },
       isExtensible: (target) => {
-        console.log("isExtensible arguments:", target)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.isExtensible)) return this.#handler.isExtensible(target);
         return Reflect.isExtensible(target);
       },
       preventExtensions: (target) => {
-        console.log("preventExtensions arguments:", target)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.preventExtensions)) return this.#handler.preventExtensions(target);
         return Reflect.preventExtensions(target);
       },
       ownKeys: (target) => {
-        console.log("ownKeys arguments:", target)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.ownKeys)) return this.#handler.ownKeys(target);
         return Reflect.ownKeys(target);
       },
       setPrototypeOf: (target, prototype) => {
-        console.log("setPrototypeOf arguments:", target, prototype)
-
         if(this.#handler && DeepProxy.#isFunction(this.#handler.setPrototypeOf)) return this.#handler.setPrototypeOf(target, prototype);
         return Object.setPrototypeOf(target, prototype);
       }
